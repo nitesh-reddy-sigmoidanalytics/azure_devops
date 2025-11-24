@@ -1,6 +1,5 @@
 # Deploy to Azure Kubernetes Service
 # Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
 - main
@@ -18,18 +17,21 @@ variables:
   tag: '$(Build.BuildId)'
   imagePullSecret: 'mydevops7599-auth'
 
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'
-
+  # Your SELF HOSTED AGENT POOL name
+  agentPoolName: 'self hosted pool'
 
 stages:
+# -----------------------------------------------------
+# BUILD STAGE
+# -----------------------------------------------------
 - stage: Build
   displayName: Build stage
   jobs:
   - job: Build
     displayName: Build
     pool:
-      vmImage: $(vmImageName)
+      name: $(agentPoolName)
+
     steps:
     - task: Docker@2
       displayName: Build and push an image to container registry
@@ -44,6 +46,9 @@ stages:
     - upload: manifests
       artifact: manifests
 
+# -----------------------------------------------------
+# DEPLOY STAGE
+# -----------------------------------------------------
 - stage: Deploy
   displayName: Deploy stage
   dependsOn: Build
@@ -52,12 +57,14 @@ stages:
   - deployment: Deploy
     displayName: Deploy
     pool:
-      vmImage: $(vmImageName)
+      name: $(agentPoolName)
+
     environment: 'niteshreddysigmoidanalyticsazuredevops.default'
     strategy:
       runOnce:
         deploy:
           steps:
+
           - task: KubernetesManifest@0
             displayName: Create imagePullSecret
             inputs:
@@ -76,4 +83,3 @@ stages:
                 $(imagePullSecret)
               containers: |
                 $(containerRegistry)/$(imageRepository):$(tag)
-
