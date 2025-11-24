@@ -36,6 +36,12 @@ stages:
         tags: |
           $(tag)
 
+    # ---------- DEBUG: List repository contents ----------
+    - script: |
+        echo "--- Build.SourcesDirectory ---"
+        ls -R $(Build.SourcesDirectory)
+      displayName: "DEBUG: List repo contents"
+
     # ---------- Publish Kubernetes Manifests ----------
     - task: PublishPipelineArtifact@1
       displayName: Publish Kubernetes Manifests
