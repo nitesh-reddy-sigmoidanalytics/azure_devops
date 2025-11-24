@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: niteshreddysigmoidanalyticsazuredevops 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: niteshreddysigmoidanalyticsazuredevops
+  template:
+    metadata:
+      labels:
+        app: niteshreddysigmoidanalyticsazuredevops 
+    spec:
+      containers:
+        - name: niteshreddysigmoidanalyticsazuredevops 
+          image: mydevops.azurecr.io/niteshreddysigmoidanalyticsazuredevops
+          ports:
+          - containerPort: 5000
