@@ -41,14 +41,11 @@ stages:
         echo "--- Build.SourcesDirectory ---"
         ls -R $(Build.SourcesDirectory)
       displayName: "DEBUG: List repo contents"
-    - task: CopyFiles@2
-      inputs:
-        SourceFolder: '$(agent.builddirectory)'
-        Contents: '**/*.yml'
-        TargetFolder: '$(build.artifactstagingdirectory)'
 
-    - task: PublishBuildArtifacts@1
+    # ---------- Publish Kubernetes Manifests ----------
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Kubernetes Manifests
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'drop'
-        publishLocation: 'Container'
+        targetPath: 'manifests'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
