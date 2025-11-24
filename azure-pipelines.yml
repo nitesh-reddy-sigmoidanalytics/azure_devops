@@ -40,8 +40,9 @@ stages:
 
     # ---------- NEW: Publish Kubernetes Manifests ----------
     - task: PublishPipelineArtifact@1
-      displayName: Publish Kubernetes Manifests
-      inputs:
-        targetPath: '$(Build.SourcesDirectory)/manifests'
-        artifact: 'manifests'
-        publishLocation: 'pipeline'
+    displayName: Publish Kubernetes Manifests
+    inputs:
+      targetPath: 'manifests'
+      artifact: 'manifests'
+      publishLocation: 'pipeline'
+
