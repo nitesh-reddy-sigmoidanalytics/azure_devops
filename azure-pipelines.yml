@@ -13,8 +13,6 @@ variables:
   containerRegistry: 'mydevops.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
   tag: '$(Build.BuildId)'
-
-  # Your self-hosted agent pool name
   agentPoolName: 'self hosted pool'
 
 stages:
@@ -38,11 +36,10 @@ stages:
         tags: |
           $(tag)
 
-    # ---------- NEW: Publish Kubernetes Manifests ----------
+    # ---------- Publish Kubernetes Manifests ----------
     - task: PublishPipelineArtifact@1
-    displayName: Publish Kubernetes Manifests
-    inputs:
-      targetPath: 'manifests'
-      artifact: 'manifests'
-      publishLocation: 'pipeline'
-
+      displayName: Publish Kubernetes Manifests
+      inputs:
+        targetPath: 'manifests'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
