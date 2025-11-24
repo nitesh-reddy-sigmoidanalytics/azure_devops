@@ -1,17 +1,13 @@
 # Python to Linux Web App on Azure
-# Build your Python project and deploy it to Azure as a Linux Web App.
-
 trigger:
 - main
 
 variables:
   azureServiceConnectionId: '8c315458-bcb2-4b84-a179-85314d94fd42'
   webAppName: 'welcome'
-  # change to *your* pool name
   agentPoolName: 'self hosted pool'
   environmentName: 'welcome'
   projectRoot: $(System.DefaultWorkingDirectory)
-  pythonVersion: '3.11'
 
 stages:
 - stage: Build
@@ -21,19 +17,15 @@ stages:
     pool:
       name: $(agentPoolName)
     steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(pythonVersion)'
-      displayName: 'Use Python $(pythonVersion)'
 
     - script: |
-        python3 -m venv antenv
+        python3.11 -m venv antenv
         source antenv/bin/activate
-        python -m pip install --upgrade pip
+        python3.11 -m pip install --upgrade pip
         pip install setup
         pip install -r requirements.txt
       workingDirectory: $(projectRoot)
-      displayName: "Install requirements"
+      displayName: "Install Python dependencies"
 
     - task: ArchiveFiles@2
       displayName: 'Archive files'
@@ -62,15 +54,11 @@ stages:
         deploy:
           steps:
 
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '$(pythonVersion)'
-            displayName: 'Use Python version'
-
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App : welcome'
             inputs:
               azureSubscription: $(azureServiceConnectionId)
               appName: $(webAppName)
               package: $(Pipeline.Workspace)/drop/$(Build.BuildId).zip
+
 
