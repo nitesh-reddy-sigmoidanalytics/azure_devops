@@ -1,40 +1,64 @@
-# Deploy to Azure Kubernetes Service
-# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
+# -----------------------------------------------------
+# Build & Push Docker Image to ACR
+# Publish Kubernetes Manifests for Release Pipeline
+# -----------------------------------------------------
 
 trigger:
 - main
 
-resources:
-- repo: self
-
 variables:
-
-  # Container registry service connection established during pipeline creation
+  # Service connection to ACR (GUID or name)
   dockerRegistryServiceConnection: '8e0dfcb1-850f-470c-be8a-90a37322cd1d'
+
+  # Image repo name inside ACR
   imageRepository: 'niteshreddysigmoidanalyticsazuredevops'
+
+  # The ACR login server
   containerRegistry: 'mydevops.azurecr.io'
-  dockerfilePath: '**/Dockerfile'
+
+  # Dockerfile path (relative)
+  dockerfilePath: 'Dockerfile'
+
+  # Image tag = Build ID
   tag: '$(Build.BuildId)'
+
+  # Kubernetes pull secret name
   imagePullSecret: 'mydevops7599-auth'
 
-  # Your SELF HOSTED AGENT POOL name
+  # Self-hosted agent pool
   agentPoolName: 'self hosted pool'
 
+
 stages:
+
 # -----------------------------------------------------
 # BUILD STAGE
 # -----------------------------------------------------
 - stage: Build
-  displayName: Build stage
+  displayName: Build & Push Stage
+
   jobs:
   - job: Build
-    displayName: Build
+    displayName: Build Docker Image
     pool:
       name: $(agentPoolName)
 
     steps:
+
+    # Login to ACR (required for self-hosted agents)
+    - task: AzureCLI@2
+      displayName: Login to Azure Container Registry
+      inputs:
+        azureSubscription: $(dockerRegistryServiceConnection)
+        scriptType: bash
+        scriptLocation: inlineScript
+        inlineScript: |
+          echo "Logging into ACR..."
+          az acr login --name $(containerRegistry)
+
+    # Build & Push Docker Image
     - task: Docker@2
-      displayName: Build and push an image to container registry
+      displayName: Build & Push Docker Image
       inputs:
         command: buildAndPush
         repository: $(imageRepository)
@@ -43,43 +67,10 @@ stages:
         tags: |
           $(tag)
 
-    - upload: manifests
-      artifact: manifests
-
-# # -----------------------------------------------------
-# # DEPLOY STAGE
-# # -----------------------------------------------------
-# - stage: Deploy
-#   displayName: Deploy stage
-#   dependsOn: Build
-
-#   jobs:
-#   - deployment: Deploy
-#     displayName: Deploy
-#     pool:
-#       name: $(agentPoolName)
-
-#     environment: 'niteshreddysigmoidanalyticsazuredevops.default'
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-
-#           - task: KubernetesManifest@0
-#             displayName: Create imagePullSecret
-#             inputs:
-#               action: createSecret
-#               secretName: $(imagePullSecret)
-#               dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-
-#           - task: KubernetesManifest@0
-#             displayName: Deploy to Kubernetes cluster
-#             inputs:
-#               action: deploy
-#               manifests: |
-#                 $(Pipeline.Workspace)/manifests/deployment.yml
-#                 $(Pipeline.Workspace)/manifests/service.yml
-#               imagePullSecrets: |
-#                 $(imagePullSecret)
-#               containers: |
-#                 $(containerRegistry)/$(imageRepository):$(tag)
+    # Publish Kubernetes manifests to Release Pipeline
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Manifests
+      inputs:
+        targetPath: 'manifests'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
