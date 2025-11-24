@@ -5,4 +5,4 @@ app=FastAPI()
 
 @app.get("/")
 def homepage():
-  return "this code is changed again to check is its working"
+  return "separate build and release stage"
