@@ -1,6 +1,5 @@
 # Docker
 # Build and push an image to Azure Container Registry
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
 
 trigger:
 - main
@@ -38,3 +37,11 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+
+    # ---------- NEW: Publish Kubernetes Manifests ----------
+    - task: PublishPipelineArtifact@1
+      displayName: Publish Kubernetes Manifests
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/manifests'
+        artifact: 'manifests'
+        publishLocation: 'pipeline'
